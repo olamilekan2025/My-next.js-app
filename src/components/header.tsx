@@ -21,7 +21,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground transition-colors hover:text-primary">
           MyProduct
         </Link>
-        <nav className="hidden md:flex items-center">
+        <nav className=" hidden md:flex items-center">
           {/* <Link
             href="/" 
             className={cn(
