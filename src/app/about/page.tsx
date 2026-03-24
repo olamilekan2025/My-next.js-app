@@ -14,9 +14,9 @@ export default function About() {
   return (
     <main className="flex-1">
       {/* Hero */}
-      <section className="bg-gradient-to-b from-[#3C83F6] to-white py-20 text-center">
+      <section className="bg-gray-100 py-20 text-center">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl md:text-6xl text-white font-bold mb-6">
+          <h1 className="text-4xl md:text-6xl text-blue-500 font-bold mb-6">
             About MyProduct
           </h1>
 
@@ -29,7 +29,7 @@ export default function About() {
 
       {/* Cards */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-0 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto lg:px-30">
           
           {/* Card 1 */}
           <Card className="group flex flex-col justify-between hover:shadow-2xl transition-all duration-500 border-0">

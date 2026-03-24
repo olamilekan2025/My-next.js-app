@@ -8,9 +8,9 @@ export default function Home() {
   return (
     <main className="flex-1">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-[#3C83F6] to-white py-2 lg:py-20 text-center lg:bg-red-400  ">
+      <section className=" py-10 lg:py-30 text-center bg-gray-100   ">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white">
+          <h1 className=" text-4x1 lg:text-6xl  font-bold text-blue-500 ">
             Welcome to My Product
           </h1>
           <p className="mx-auto max-w-2xl text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
@@ -25,14 +25,14 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="container mx-auto px-4 lg:px-0 lg:px-0 py-20 ">
+      <section className="container mx-auto px-4 lg:px-0 lg:px-0 py-20  ">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Featured Products</h2>
           <p className="text-xl text-muted-foreground max-w-md mx-auto">
             Discover our top products that drive results
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto lg:px-30">
           <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-card to-muted overflow-hidden">
             <CardHeader className="pb-4">
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors mb-4">

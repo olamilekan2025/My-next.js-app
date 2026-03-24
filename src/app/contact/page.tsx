@@ -45,7 +45,7 @@ export default function Contact() {
         </section>
         <section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start max-w-6xl mx-auto lg:px-17 lg:py-10">
           {/* Contact Info */}
           <Card className="group shadow-xl hover:shadow-2xl transition-all duration-500 lg:sticky lg:top-20 lg:h-fit lg:self-start">
             <CardHeader>

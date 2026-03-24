@@ -7,9 +7,9 @@ export default function Products() {
   return (
     <main className="flex-1">
       {/* Hero */}
-      <section className="bg-gradient-to-b from-[#3C83F6] to-white py-20 text-center">
+      <section className="bg-gray-100 py-20 text-center">
         <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-blue-500 mb-6">
             Our Products
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
@@ -20,7 +20,7 @@ export default function Products() {
 
       {/* Products Grid */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto lg:px-23">
           {/* Analytics Pro */}
           <Card className="group hover:shadow-2xl transition-all duration-500 border-0 h-full overflow-hidden bg-gradient-to-br from-card to-muted hover:shadow-primary/10">
             <CardHeader className="pb-6">
