@@ -1,10 +1,21 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Package, Users, Zap } from 'lucide-react'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+'use client';
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Package, Users, Zap } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 
 export default function Home() {
+  const router = useRouter();
   return (
     <main className="flex-1">
       {/* Hero Section */}
@@ -14,20 +25,30 @@ export default function Home() {
             Welcome to My Product
           </h1>
           <p className="mx-auto max-w-2xl text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
-            Transform your business with our innovative solutions. Powerful tools designed for modern teams.
+            Transform your business with our innovative solutions. Powerful
+            tools designed for modern teams.
           </p>
-          <Link href="/products">
+          {/* <Link href="/products">
             <Button size="lg" className="text-lg px-8 h-12">
               Explore Products
             </Button>
-          </Link>
+          </Link> */}
+          <Button
+            size="lg"
+            className="text-lg px-8 h-12 cursor-pointer"
+            onClick={() => router.push("/products")}
+          >
+            Explore Products
+          </Button>
         </div>
       </section>
 
       {/* Featured Products */}
       <section className="container mx-auto px-4 lg:px-0 lg:px-0 py-20  ">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Featured Products</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Featured Products
+          </h2>
           <p className="text-xl text-muted-foreground max-w-md mx-auto">
             Discover our top products that drive results
           </p>
@@ -38,8 +59,12 @@ export default function Home() {
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors mb-4">
                 <Package className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="text-2xl group-hover:text-primary transition-colors">Analytics Pro</CardTitle>
-              <CardDescription>Advanced analytics for data-driven decisions.</CardDescription>
+              <CardTitle className="text-2xl group-hover:text-primary transition-colors">
+                Analytics Pro
+              </CardTitle>
+              <CardDescription>
+                Advanced analytics for data-driven decisions.
+              </CardDescription>
             </CardHeader>
             <CardContent className="pt-0 pb-6">
               <ul className="space-y-2 text-sm">
@@ -59,7 +84,10 @@ export default function Home() {
             </CardContent>
             <CardFooter className="pt-5 border-t">
               <Link href="/products">
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Button
+                  variant="outline"
+                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                >
                   View Details →
                 </Button>
               </Link>
@@ -71,8 +99,12 @@ export default function Home() {
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors mb-4">
                 <Users className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="text-2xl group-hover:text-primary transition-colors">Team CRM</CardTitle>
-              <CardDescription>Manage customer relationships effortlessly.</CardDescription>
+              <CardTitle className="text-2xl group-hover:text-primary transition-colors">
+                Team CRM
+              </CardTitle>
+              <CardDescription>
+                Manage customer relationships effortlessly.
+              </CardDescription>
             </CardHeader>
             <CardContent className="pt-0 pb-6">
               <ul className="space-y-2 text-sm">
@@ -92,7 +124,10 @@ export default function Home() {
             </CardContent>
             <CardFooter className="pt-5 border-t">
               <Link href="/products">
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Button
+                  variant="outline"
+                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                >
                   View Details →
                 </Button>
               </Link>
@@ -104,8 +139,12 @@ export default function Home() {
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors mb-4">
                 <Zap className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="text-2xl group-hover:text-primary transition-colors">Automation Hub</CardTitle>
-              <CardDescription>Automate your workflows with ease.</CardDescription>
+              <CardTitle className="text-2xl group-hover:text-primary transition-colors">
+                Automation Hub
+              </CardTitle>
+              <CardDescription>
+                Automate your workflows with ease.
+              </CardDescription>
             </CardHeader>
             <CardContent className="pt-0 pb-6">
               <ul className="space-y-2 text-sm">
@@ -125,7 +164,10 @@ export default function Home() {
             </CardContent>
             <CardFooter className="pt-5 border-t">
               <Link href="/products">
-                <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <Button
+                  variant="outline"
+                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                >
                   View Details →
                 </Button>
               </Link>
@@ -134,6 +176,5 @@ export default function Home() {
         </div>
       </section>
     </main>
-  )
+  );
 }
-
