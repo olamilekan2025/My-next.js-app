@@ -1,11 +1,1 @@
-# Custom 404 Page Task
-
-## Plan Steps
-- [x] Create src/app/not-found.tsx with custom design matching home page theme (hero-like, buttons, icons)
-- [ ] Test: Run `npm run dev` and visit /nonexistent
-- [ ] Optional: Add more links (e.g., Products button) or animations if requested
-
-## Status
-Custom 404 page created successfully. Test to confirm it replaces Next.js default.
-
-Ready for dev server test.
+# TODO: Fix OTP TypeScript Errors\n\n- [ ] 1. Edit src/app/auth/verify-email/page.tsx: Replace `length={6}` with `numInputs={6}`\n- [ ] 2. Edit src/app/auth/verify-login/page.tsx: Replace `length={6}` with `numInputs={6}`\n- [ ] 3. Verify TypeScript errors are resolved and test OTP functionality

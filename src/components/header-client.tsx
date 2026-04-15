@@ -1,4 +1,4 @@
- "use client"
+"use client"
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -18,16 +18,16 @@ export function Header() {
   const { data: session, status } = useSession()
 
   return (
-    <header className=" container mx-auto sticky  top-0 z-50  border-b border-border/40 bg-background/95 backdrop-blur-x10 lg:px-22">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
+    <header className="container mx-auto sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-xl px-4 lg:px-22">
+      <div className="container mx-auto flex h-16 items-center justify-between md:px-8">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold text-foreground transition-colors hover:text-primary">
           MyProduct
         </Link>
-        <nav className=" hidden md:flex items-center">
+        <nav className="hidden md:flex items-center">
           <Link
             href="/about"
             className={cn(
-              "group/nav-item flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground ",
+              "group/nav-item flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground",
               pathname === '/about' && "bg-primary/10 text-primary hover:bg-primary/20"
             )}
           >
@@ -37,7 +37,7 @@ export function Header() {
           <Link
             href="/products"
             className={cn(
-              "group/nav-item flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground ",
+              "group/nav-item flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground",
               pathname === '/products' && "bg-primary/10 text-primary hover:bg-primary/20"
             )}
           >
@@ -47,7 +47,7 @@ export function Header() {
           <Link
             href="/contact"
             className={cn(
-              "group/nav-item flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground ",
+              "group/nav-item flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground",
               pathname === '/contact' && "bg-primary/10 text-primary hover:bg-primary/20"
             )}
           >
@@ -78,17 +78,13 @@ export function Header() {
         </nav>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden"
-            >
+            <Button variant="ghost" size="sm" className="md:hidden">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className=" h-screen  ">
-            <DropdownMenuItem className={pathname === '/' ? 'bg-accent  text-accent-foreground' : ''} asChild>
+          <DropdownMenuContent align="center" className="h-screen">
+            <DropdownMenuItem className={pathname === '/' ? 'bg-accent text-accent-foreground' : ''} asChild>
               <Link href="/" className="flex w-full items-center gap-2">
                 <Home className="h-4 w-4 mr-2" aria-hidden />
                 Home
@@ -100,7 +96,7 @@ export function Header() {
                 About
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className={pathname === '/products' ? 'bg-accent text-accent-foreground' : ''} asChild>
+            <DropdownMenuItem className={pathname === '/about' ? 'bg-accent text-accent-foreground' : ''} asChild>
               <Link href="/products" className="flex w-full items-center gap-2">
                 <Package className="h-4 w-4 mr-2" aria-hidden />
                 Products
@@ -131,3 +127,4 @@ export function Header() {
     </header>
   )
 }
+
