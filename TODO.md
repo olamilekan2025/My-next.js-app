@@ -1,12 +1,12 @@
-# Fix Next.js Blocking Route Error on /auth/reset-password
+# DB Connection Test Progress
 
-**Status:** In progress
+## Plan Steps:
+- [x] Create test script `scripts/test-db.ts`
+- [x] Install tsx if needed (`npm i -D tsx`)
+- [ ] Run test (`npx tsx scripts/test-db.ts`)
+- [ ] Set MONGODB_URI if failed
+- [ ] Integrate to app if success (optional)
 
-## Steps:
-- [x] User approved plan
-- [x] Create src/app/auth/reset-password/reset-password-client.tsx (client component)
-- [x] Update src/app/auth/reset-password/page.tsx (server wrapper with Suspense)
-- [x] Delete unused src/app/component/resetpass.tsx
-- [ ] Restart dev server and test route
+## Next:
+Run: `npx tsx scripts/test-db.ts`
 
-**Expected result:** Error gone, page streams via Suspense, fast initial render.

@@ -2,6 +2,18 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+**Email Setup (Required for auth flows):**
+Update `.env.local` with your SMTP details:
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com  
+SMTP_PASS=your-app-password  # Use Gmail App Password
+FROM_EMAIL=noreply@yourapp.com
+APP_URL=http://localhost:3000
+```
+[Gmail App Password guide](https://support.google.com/accounts/answer/185833)
+
 First, run the development server:
 
 ```bash
@@ -13,6 +25,7 @@ pnpm dev
 # or
 bun dev
 ```
+
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
