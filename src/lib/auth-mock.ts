@@ -32,7 +32,7 @@ export interface MockUser {
   termsAgreed: boolean
 }
 
-// Shared state
+// Shared state: token -> email mapping
 export const resetTokens: Record<string, string> = {}
 
 const hashedPassword = bcrypt.hashSync('password123', 10)

@@ -20,7 +20,6 @@ function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [token, setToken] = useState("");
-  const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,9 +28,7 @@ function ResetPasswordPage() {
 
   useEffect(() => {
     const urlToken = searchParams.get("token");
-    const urlEmail = searchParams.get("email");
     if (urlToken) setToken(urlToken);
-    if (urlEmail) setEmail(urlEmail);
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +41,7 @@ function ResetPasswordPage() {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, email, newPassword }),
+        body: JSON.stringify({ token, newPassword }),
       });
 
       const data = await response.json();
@@ -84,20 +81,6 @@ function ResetPasswordPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="token" className="text-sm font-medium">
                 Reset Token

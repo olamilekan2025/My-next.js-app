@@ -3,17 +3,17 @@ import {  resetTokens , resetPassword,} from '../../../../lib/auth-mock'
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, email, newPassword } = await request.json()
+    const { token, newPassword } = await request.json()
 
-    const savedToken = resetTokens[email]
-    if (!savedToken || savedToken !== token) {
+    const email = resetTokens[token]
+    if (!email) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
     }
 
     const success = await resetPassword(email, newPassword)
     if (success) {
       // Clear token
-      delete resetTokens[email]
+      delete resetTokens[token]
       return NextResponse.json({ success: true, message: 'Password reset successful' })
     } else {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })

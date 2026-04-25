@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Generate token
     const token = crypto.randomBytes(32).toString('hex')
-    resetTokens[email] = token
+    resetTokens[token] = email
 
     // Send real reset email\n    const mailer = await import('@/lib/mailer');\n    const sent = await mailer.sendPasswordResetCode(email, token);\n    if (!sent) {\n      console.error('Failed to send reset email');\n      return NextResponse.json({ error: 'Failed to send reset email' }, { status: 500 });\n    }
 
