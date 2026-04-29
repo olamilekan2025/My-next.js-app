@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp'
 import { Loader2, Shield, CheckCircle, ArrowLeft } from 'lucide-react'
@@ -19,12 +18,14 @@ import { Loader2, Shield, CheckCircle, ArrowLeft } from 'lucide-react'
 export default function VerifyLoginClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [email, setEmail] = useState('')
   const [token, setToken] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
+  const [email, setEmail] = useState('') // Internal for API
+
+  const maskedEmail = email ? email.replace(/^(.{2}).*@/, '$1***@') : ''
 
   useEffect(() => {
     const urlEmail = searchParams.get('email')
@@ -37,24 +38,54 @@ export default function VerifyLoginClient() {
     setError('')
     setMessage('')
 
-    // Mock verification - use '123456' for success
-    if (token === '123456') {
-      setMessage('Login token verified! Redirecting...')
-      setTimeout(() => router.push('/'), 2000)
-    } else {
-      setError('Invalid login token. Please check your email or app.')
+    try {
+      const response = await fetch('/api/auth/verify-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', email, code: token })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setMessage('Login token verified! Redirecting...')
+        setTimeout(() => router.push('/'), 2000)
+      } else {
+        setError(data.error || 'Verification failed')
+      }
+    } catch (err) {
+      setError('Network error. Please try again.')
     }
 
     setIsLoading(false)
   }
 
   const handleResend = async () => {
+    if (!email) return
+
     setResending(true)
-    // Mock resend
-    setTimeout(() => {
-      setMessage('New token sent to your email.')
-      setResending(false)
-    }, 1000)
+    setError('')
+    setMessage('')
+
+    try {
+      const response = await fetch('/api/auth/resend-login-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setMessage('New token sent to your email.')
+      } else {
+        setError(data.error || 'Resend failed')
+      }
+    } catch (err) {
+      setError('Network error. Please try again.')
+    }
+
+    setResending(false)
   }
 
   return (
@@ -80,18 +111,9 @@ export default function VerifyLoginClient() {
           )}
 
           <form onSubmit={handleVerify} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+            <div className="text-center p-3 bg-muted rounded-lg mb-4">
+              <p className="text-sm font-medium text-muted-foreground mb-1">Sent to:</p>
+              <p className="font-mono text-sm">{maskedEmail}</p>
             </div>
 
             <div className="space-y-2">
@@ -116,7 +138,7 @@ export default function VerifyLoginClient() {
                 </InputOTP>
               </InputOTPGroup>
               <p className="text-xs text-muted-foreground text-center">
-                Didn't receive token? <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading} className="h-5 px-0 p-0 h-auto">Resend</Button>
+                Didn't receive token? <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading || !email} className="h-5 px-0 p-0 h-auto">Resend</Button>
               </p>
             </div>
 

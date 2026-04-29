@@ -31,16 +31,24 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const response = await fetch('/api/auth/user-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (result?.error) {
-      setError("Invalid credentials");
-    } else {
-      window.location.href = "/";
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        window.location.href = `/auth/verify-login?email=${encodeURIComponent(email)}`;
+      } else {
+        setError(data.error || 'Login failed');
+        window.location.href = '/';
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+      window.location.href = '/';
     }
 
     setIsLoading(false);

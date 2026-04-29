@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter , useSearchParams} from "next/navigation";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, ArrowLeft } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 
 function ResetPasswordPage() {
@@ -22,13 +23,17 @@ function ResetPasswordPage() {
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     const urlToken = searchParams.get("token");
+    const urlEmail = searchParams.get("email");
     if (urlToken) setToken(urlToken);
+    if (urlEmail) setEmail(urlEmail);
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,6 +64,28 @@ function ResetPasswordPage() {
     setIsLoading(false);
   };
 
+  const handleResend = async () => {
+    setResending(true);
+    setError('');
+    try {
+      const response = await fetch('/api/auth/resend-reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setMessage('New reset link sent to your email!');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setError(data.error || 'Failed to resend');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    }
+    setResending(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md border-0 bg-card/80 backdrop-blur-xl p-8">
@@ -81,6 +108,8 @@ function ResetPasswordPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+           
+
             <div className="space-y-2">
               <Label htmlFor="token" className="text-sm font-medium">
                 Reset Token
@@ -120,6 +149,24 @@ function ResetPasswordPage() {
                 </Button>
               </div>
             </div>
+
+             <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="p-0 h-fit text-primary hover:text-primary/80 hover:bg-transparent text-sm -mt-1 mx-auto block underline"
+                onClick={handleResend}
+                disabled={resending}
+              >
+                {resending ? (
+                  <>
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin inline" />
+                    Resending...
+                  </>
+                ) : (
+                  'Resend reset link'
+                )}
+              </Button>
 
             <Button
               type="submit"
