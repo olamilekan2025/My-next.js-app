@@ -55,17 +55,16 @@ export default function SignupPage() {
         body: JSON.stringify(formData)
       })
 
-      if (response.ok) {
-        setSuccess('Account created! Please sign in.')
-        // Auto sign in
-        await signIn('credentials', {
-          email: formData.email,
-          password: formData.password,
-          redirect: false
-        })
-        window.location.href = '/'
+if (response.ok) {
+        const data = await response.json()
+        setSuccess('Account created! Redirecting to verification...')
+        // Redirect to email verification page with email param
+        setTimeout(() => {
+          window.location.href = `/auth/verify-email?email=${encodeURIComponent(data.email)}`
+        }, 1500)
       } else {
-        setError('Signup failed. Email may already exist.')
+        const errorData = await response.json()
+        setError(errorData.error || 'Signup failed. Email may already exist.')
       }
     } catch (err) {
       setError('Signup failed. Please try again.')

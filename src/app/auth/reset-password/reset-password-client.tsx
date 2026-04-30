@@ -28,6 +28,22 @@ function ResetPasswordPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [resendCooldown])
 
   useEffect(() => {
     const urlToken = searchParams.get("token");
@@ -64,7 +80,9 @@ function ResetPasswordPage() {
     setIsLoading(false);
   };
 
-  const handleResend = async () => {
+const handleResend = async () => {
+    if (resendCooldown > 0) return
+    
     setResending(true);
     setError('');
     try {
@@ -76,6 +94,7 @@ function ResetPasswordPage() {
       const data = await response.json();
       if (response.ok) {
         setMessage('New reset link sent to your email!');
+        setResendCooldown(60); // 60 second cooldown
         setTimeout(() => setMessage(''), 3000);
       } else {
         setError(data.error || 'Failed to resend');
@@ -150,19 +169,21 @@ function ResetPasswordPage() {
               </div>
             </div>
 
-             <Button
+<Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="p-0 h-fit text-primary hover:text-primary/80 hover:bg-transparent text-sm -mt-1 mx-auto block underline"
                 onClick={handleResend}
-                disabled={resending}
+                disabled={resending || resendCooldown > 0}
               >
                 {resending ? (
                   <>
                     <Loader2 className="mr-1 h-3 w-3 animate-spin inline" />
                     Resending...
                   </>
+                ) : resendCooldown > 0 ? (
+                  <>Resend in {resendCooldown}s</>
                 ) : (
                   'Resend reset link'
                 )}

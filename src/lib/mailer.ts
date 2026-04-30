@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmail(options: nodemailer.SendMailOptions): Promise<boolean> {
   try {
     await transporter.sendMail({
-      from: process.env.FROM_EMAIL || '"My Product" <noreply@myproduct.com>',
+      from: process.env.FROM_EMAIL || '"My Product" <noreply@oladunjoyejeleel@gmail.com>',
       ...options,
     });
     console.log(`✅ Email sent to ${options.to}`);

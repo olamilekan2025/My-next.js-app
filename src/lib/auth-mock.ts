@@ -37,19 +37,8 @@ export interface MockUser {
 // Shared state: token -> email mapping
 export const resetTokens: Record<string, string> = {}
 
-const hashedPassword = bcrypt.hashSync('password123', 10)
-export const users: MockUser[] = [
-  {
-    id: '1',
-    firstname: 'John',
-    lastname: 'Doe',
-    email: 'john@example.com',
-    phone: '1234567890',
-    address: '123 Main St',
-    password: hashedPassword,
-    termsAgreed: true
-  }
-]
+// Users array - populated from MongoDB atruntime
+export const users: MockUser[] = []
 
 export const loginTokens: Record<string, {email: string, code: string, expires: Date}> = {}
 

@@ -25,35 +25,83 @@ export default function VerifyEmailClient() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [resendCooldown])
 
   useEffect(() => {
     const urlEmail = searchParams.get('email')
     if (urlEmail) setEmail(urlEmail)
   }, [searchParams])
 
-  const handleVerify = async (e: React.FormEvent) => {
+const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError('')
+    setMessage('')
 
-    // Mock verification - use '123456' for success
-    if (token === '123456') {
-      setMessage('Email verified successfully!')
-      setTimeout(() => router.push('/'), 2000)
-    } else {
-      setError('Invalid verification code. Please check your email.')
+    try {
+      const response = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', email, code: token })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage('Email verified successfully!')
+        setTimeout(() => router.push('/auth/login'), 2000)
+      } else {
+        setError(data.error || 'Invalid verification code. Please check your email.')
+      }
+    } catch (err) {
+      setError('Verification failed. Please try again.')
     }
 
     setIsLoading(false)
   }
 
-  const handleResend = async () => {
+const handleResend = async () => {
+    if (resendCooldown > 0) return
+    
     setResending(true)
-    // Mock resend
-    setTimeout(() => {
-      setMessage('Verification code resent to your email.')
-      setResending(false)
-    }, 1000)
+    setError('')
+    setMessage('')
+
+    try {
+      const response = await fetch('/api/auth/resend-email-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage('Verification code resent to your email.')
+        setResendCooldown(60) // 60 second cooldown
+      } else {
+        setError(data.error || 'Failed to resend code.')
+      }
+    } catch (err) {
+      setError('Failed to resend code. Please try again.')
+    }
+
+    setResending(false)
   }
 
   return (
@@ -78,19 +126,13 @@ export default function VerifyEmailClient() {
             </div>
           )}
 
-          <form onSubmit={handleVerify} className="space-y-4">
+<form onSubmit={handleVerify} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Label className="text-sm font-medium">Email</Label>
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{email}</span>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -114,8 +156,15 @@ export default function VerifyEmailClient() {
                   </InputOTPGroup>
                 </InputOTP>
               </InputOTPGroup>
-              <p className="text-xs text-muted-foreground text-center">
-                Didn't receive code? <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading} className="h-5 px-0 p-0 h-auto">Resend</Button>
+<p className="text-xs text-muted-foreground text-center">
+                Didn't receive code?{' '}
+                {resendCooldown > 0 ? (
+                  <span className="text-muted-foreground">Resend in {resendCooldown}s</span>
+                ) : (
+                  <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading} className="h-5 px-0 p-0 h-auto">
+                    {resending ? 'Sending...' : 'Resend'}
+                  </Button>
+                )}
               </p>
             </div>
 

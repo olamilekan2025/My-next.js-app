@@ -23,9 +23,25 @@ export default function VerifyLoginClient() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
   const [email, setEmail] = useState('') // Internal for API
 
   const maskedEmail = email ? email.replace(/^(.{2}).*@/, '$1***@') : ''
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [resendCooldown])
 
   useEffect(() => {
     const urlEmail = searchParams.get('email')
@@ -60,8 +76,8 @@ export default function VerifyLoginClient() {
     setIsLoading(false)
   }
 
-  const handleResend = async () => {
-    if (!email) return
+const handleResend = async () => {
+    if (!email || resendCooldown > 0) return
 
     setResending(true)
     setError('')
@@ -78,6 +94,7 @@ export default function VerifyLoginClient() {
 
       if (response.ok && data.success) {
         setMessage('New token sent to your email.')
+        setResendCooldown(60) // 60 second cooldown
       } else {
         setError(data.error || 'Resend failed')
       }
@@ -137,8 +154,15 @@ export default function VerifyLoginClient() {
                   </InputOTPGroup>
                 </InputOTP>
               </InputOTPGroup>
-              <p className="text-xs text-muted-foreground text-center">
-                Didn't receive token? <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading || !email} className="h-5 px-0 p-0 h-auto">Resend</Button>
+<p className="text-xs text-muted-foreground text-center">
+                Didn't receive token?{' '}
+                {resendCooldown > 0 ? (
+                  <span className="text-muted-foreground">Resend in {resendCooldown}s</span>
+                ) : (
+                  <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading || !email} className="h-5 px-0 p-0 h-auto">
+                    {resending ? 'Sending...' : 'Resend'}
+                  </Button>
+                )}
               </p>
             </div>
 
