@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import connectDB from '@/lib/mongoDB'
-import { sendEmailVerificationCode } from '@/lib/mailer'
-import { storeVerificationCode } from '../verify-email/route'
+import { sendLoginVerificationCode } from '@/lib/mailer'
 
 function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -46,7 +45,10 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-// Create user document with role
+    // Generate 6-digit login verification code
+    const code = generateCode()
+
+    // Create user document with sales role
     const userDoc = {
       firstname,
       lastname,
@@ -54,9 +56,11 @@ export async function POST(request: NextRequest) {
       phone: phone || '',
       address: address || '',
       password: hashedPassword,
-      role: 'user',
-      isEmailVerified: false,
+      role: 'sales',
+      isEmailVerified: true, // Sales doesn't need email verification
       isLoginVerified: false,
+      loginVerificationCode: code,
+      loginCodeExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -66,34 +70,28 @@ export async function POST(request: NextRequest) {
 
     if (!result.insertedId) {
       return NextResponse.json(
-        { error: 'Failed to create user' },
+        { error: 'Failed to create sales user' },
         { status: 500 }
       )
     }
 
-    // Generate 6-digit verification code
-    const code = generateCode()
-
-    // Store verification code using the shared function
-    storeVerificationCode(email.toLowerCase(), code)
-
-    // Send verification email
-    const emailSent = await sendEmailVerificationCode(email, code)
+    // Send login verification email
+    const emailSent = await sendLoginVerificationCode(email, code)
     if (!emailSent) {
-      console.error('Failed to send verification email')
+      console.error('Failed to send login verification email')
       // Don't fail signup if email fails, just log error
     }
 
-    console.log(`✅ User signed up: ${email}, verification code: ${code}`)
+    console.log(`✅ Sales signed up: ${email}, login code: ${code}`)
 
     return NextResponse.json({
       success: true,
-      message: 'Account created! Please verify your email.',
+      message: 'Sales account created! Please verify your login.',
       email: email.toLowerCase()
     })
 
   } catch (error) {
-    console.error('Signup error:', error)
+    console.error('Sales signup error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
