@@ -1,30 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import connectDB from '@/lib/mongoDB'
-import { sendLoginVerificationCode } from '@/lib/mailer'
-
-function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
+import { sendWelcomeEmailWithDefaultPassword } from '@/lib/welcome-mailer'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { firstname, lastname, email, phone, address, password } = body
+    // Parse body defensively (some clients may omit/incorrectly set content-type)
+    let body: Record<string, unknown> = {}
+    try {
+      body = (await request.json()) as Record<string, unknown>
+    } catch {
+      const contentType = request.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        throw new Error('Invalid JSON body')
+      }
+    }
 
-    // Validate required fields
-    if (!firstname || !lastname || !email || !password) {
+
+    const { firstname, lastname, email, phone, address } = body
+
+    const firstnameStr = typeof firstname === 'string' ? firstname : ''
+    const lastnameStr = typeof lastname === 'string' ? lastname : ''
+    const emailStr = typeof email === 'string' ? email : ''
+
+    const phoneStr = typeof phone === 'string' ? phone : ''
+    const addressStr = typeof address === 'string' ? address : ''
+
+    const firstnameTrimmed = firstnameStr.trim()
+    const lastnameTrimmed = lastnameStr.trim()
+    const emailTrimmed = emailStr.trim()
+
+    const normalizedEmail = emailTrimmed.toLowerCase()
+
+
+
+
+    // Validate required fields (no password in request body)
+    if (!firstnameTrimmed || !lastnameTrimmed || !emailTrimmed) {
+
       return NextResponse.json(
-        { error: 'First name, last name, email, and password are required' },
+        { error: 'First name, last name, and email are required' },
         { status: 400 }
       )
     }
 
+
+    // Generate a default password for admin
+    const defaultPassword = `Admin@${Math.random().toString(36).slice(2, 8)}`
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12)
+
     // Connect to MongoDB
     const connected = await connectDB()
     if (!connected) {
+      // Avoid leaking secrets (we don't include MONGODB_URI), but provide actionable hints.
+      const hasMongoUri = Boolean(process.env.MONGODB_URI)
+
       return NextResponse.json(
-        { error: 'Database connection failed' },
+        {
+          error: hasMongoUri
+            ? 'Database connection failed (MongoDB Atlas unreachable). Check your Atlas IP allowlist and cluster credentials.'
+            : 'Database connection failed: missing MONGODB_URI. Ensure your .env.local has a valid MONGODB_URI and restart the dev server.'
+        },
         { status: 500 }
       )
     }
@@ -34,38 +70,33 @@ export async function POST(request: NextRequest) {
     const usersCollection = db.collection('users')
 
     // Check if user already exists
-    const existingUser = await usersCollection.findOne({ email: email.toLowerCase() })
+    const existingUser = await usersCollection.findOne({ email: normalizedEmail })
     if (existingUser) {
+
       return NextResponse.json(
         { error: 'User with this email already exists' },
         { status: 409 }
       )
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Generate 6-digit login verification code
-    const code = generateCode()
-
-    // Create user document with admin role
+    // Create admin user document (login verification is handled during login)
     const userDoc = {
-      firstname,
-      lastname,
-      email: email.toLowerCase(),
-      phone: phone || '',
-      address: address || '',
+      firstname: firstnameTrimmed,
+      lastname: lastnameTrimmed,
+      email: normalizedEmail,
+      phone: phoneStr,
+      address: addressStr,
+
       password: hashedPassword,
       role: 'admin',
       isEmailVerified: true, // Admin doesn't need email verification
       isLoginVerified: false,
-      loginVerificationCode: code,
-      loginCodeExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      loginVerificationCode: null,
+      loginCodeExpires: null,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }
 
-    // Insert user into database
     const result = await usersCollection.insertOne(userDoc)
 
     if (!result.insertedId) {
@@ -75,21 +106,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Send login verification email
-    const emailSent = await sendLoginVerificationCode(email, code)
-    if (!emailSent) {
-      console.error('Failed to send login verification email')
-      // Don't fail signup if email fails, just log error
-    }
+    // Send welcome email containing the default password
+    const emailSent = await sendWelcomeEmailWithDefaultPassword({
+      email: normalizedEmail,
+      firstname: firstnameTrimmed,
+      lastname: lastnameTrimmed,
+      role: 'admin',
+      defaultPassword,
+    })
 
-    console.log(`✅ Admin signed up: ${email}, login code: ${code}`)
+
+    if (!emailSent) {
+      console.error('Failed to send welcome email with default password')
+      // Don't fail signup if email fails
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Admin account created! Please verify your login.',
-      email: email.toLowerCase()
-    })
+      message: 'Admin account created! Check your email for your default password.',
+      email: normalizedEmail,
 
+    })
   } catch (error) {
     console.error('Admin signup error:', error)
     return NextResponse.json(
@@ -98,3 +135,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

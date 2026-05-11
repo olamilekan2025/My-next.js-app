@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 
-
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
@@ -11,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendEmail(options: nodemailer.SendMailOptions): Promise<boolean> {
+export async function sendEmail(options: nodemailer.SendMailOptions): Promise<boolean> {
   try {
     await transporter.sendMail({
       from: process.env.FROM_EMAIL || '"My Product" <noreply@oladunjoyejeleel@gmail.com>',
