@@ -1,14 +1,11 @@
-# Separate Routes for Resend Functionality
+# TODO
 
-## Steps (0/5 completed)
-
-- [x] 1. Create `src/app/api/auth/resend-login-code/route.ts` - Dedicated POST route for resending login verification code
-- [x] 2. Edit `src/app/api/auth/verify-login/route.ts` - Remove resend action handler, keep only verify
-- [x] 3. Edit `src/app/auth/verify-login/verify-login-client.tsx` - Update handleResend fetch to new endpoint
-- [x] 4. Edit `src/app/auth/login/page.tsx` - Update login submit resend fetch to new endpoint  
-- [x] 5. Test the flow and mark complete
-
-**Task complete! Routes separated successfully.**
-
-**Next step: Create resend-login-code route**
+- [x] Diagnose why email reset link contains token instead of 6-digit code.
+- [x] Replace reset token flow with 6-digit reset code flow (server + email).
+- [x] Update forgot-password API to generate and store 6-digit code (with 1h expiry).
+- [x] Update resend-reset-password API to re-generate and re-send 6-digit code.
+- [x] Update reset-password API to validate submitted 6-digit code and then reset password.
+- [x] Update reset-password UI to accept 6-digit code and submit `{ code, email, newPassword }`.
+- [ ] Run `npm run lint` and fix any remaining TypeScript/ESLint issues.
+- [ ] Run a quick manual test: request reset, confirm email shows 6-digit code, reset succeeds.
 

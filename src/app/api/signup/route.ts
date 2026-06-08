@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import connectDB from '@/lib/mongoDB'
 import { sendEmailVerificationCode } from '@/lib/mailer'
-import { storeVerificationCode } from '../verify-email/route'
 
 function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -12,6 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { firstname, lastname, email, phone, address, password } = body
+
 
     // Validate required fields
     if (!firstname || !lastname || !email || !password) {
@@ -74,23 +74,44 @@ export async function POST(request: NextRequest) {
     // Generate 6-digit verification code
     const code = generateCode()
 
-    // Store verification code using the shared function
-    storeVerificationCode(email.toLowerCase(), code)
+    // Store verification token in the USER document (instead of in-memory)
+    await usersCollection.updateOne(
+      { email: email.toLowerCase() },
+      {
+        $set: {
+          emailVerificationCode: code,
+          emailVerificationExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          updatedAt: new Date(),
+        },
+      }
+    )
 
     // Send verification email
     const emailSent = await sendEmailVerificationCode(email, code)
-    if (!emailSent) {
-      console.error('Failed to send verification email')
-      // Don't fail signup if email fails, just log error
+
+    // Requirement: always redirect the user to email verification page after registration,
+    // even if email sending fails (client will show correct status). Do NOT block creation.
+    if (emailSent !== true) {
+      console.error(
+        `❌ Failed to send verification email to ${email.toLowerCase()}. sendEmailVerificationCode returned: ${emailSent}`
+      )
+      return NextResponse.json({
+        success: true,
+        message: 'Account created! Please verify your email (check inbox/spam).',
+        email: email.toLowerCase(),
+        emailSent: false,
+      })
     }
 
-    console.log(`✅ User signed up: ${email}, verification code: ${code}`)
+    console.log(`✅ User signed up: ${email}. Verification code stored + email sent.`)
 
     return NextResponse.json({
       success: true,
       message: 'Account created! Please verify your email.',
-      email: email.toLowerCase()
+      email: email.toLowerCase(),
+      emailSent: true,
     })
+
 
   } catch (error) {
     console.error('Signup error:', error)

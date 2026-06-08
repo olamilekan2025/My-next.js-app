@@ -40,16 +40,31 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        window.location.href = `/auth/verify-login?email=${encodeURIComponent(email)}`;
+      if (data?.needsEmailVerification) {
+        // Redirect unverified users to the email verification page.
+        // Relying on the constructed URL is more reliable than relying on response headers.
+        window.location.href = `/auth/verify-email?email=${encodeURIComponent(email)}`;
+      } else if (data?.success) {
+        // Only admin/sales require login-token verification.
+        // Regular users should be redirected elsewhere (e.g. home).
+        const role = data?.role;
+        if (role === 'admin' || role === 'sales') {
+          window.location.href = `/auth/verify-login?email=${encodeURIComponent(email)}`;
+        } else {
+          window.location.href = '/';
+        }
       } else {
+
         setError(data.error || 'Login failed');
-        window.location.href = '/';
+        // Stay on login page so the user can correct the input / retry.
       }
+
+
     } catch (err) {
       setError('Network error. Please try again.');
-      window.location.href = '/';
+      // Stay on login page so the user can retry.
     }
+
 
     setIsLoading(false);
   };

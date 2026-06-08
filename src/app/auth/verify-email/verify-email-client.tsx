@@ -11,23 +11,31 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp'
+import { Label } from '@/components/ui/label'
 import { Loader2, Mail, CheckCircle, ArrowLeft } from 'lucide-react'
 
 export default function VerifyEmailClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
+
+  const urlEmail = searchParams.get('email')
   const [email, setEmail] = useState('')
   const [token, setToken] = useState('')
+
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
 
-  // Countdown timer for resend button
+  // Keep local email in sync with URL query param.
+  // Use functional updater to avoid react-hooks lint complaints.
+  useEffect(() => {
+    setEmail((prev) => prev || urlEmail || '')
+  }, [urlEmail])
+
+  // Countdown timer for resend button (client-side UX). Server also stores expiry.
   useEffect(() => {
     if (resendCooldown <= 0) return
     const timer = setInterval(() => {
@@ -42,13 +50,9 @@ export default function VerifyEmailClient() {
     return () => clearInterval(timer)
   }, [resendCooldown])
 
-  useEffect(() => {
-    const urlEmail = searchParams.get('email')
-    if (urlEmail) setEmail(urlEmail)
-  }, [searchParams])
-
-const handleVerify = async (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
+
     setIsLoading(true)
     setError('')
     setMessage('')
@@ -57,7 +61,7 @@ const handleVerify = async (e: React.FormEvent) => {
       const response = await fetch('/api/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', email, code: token })
+        body: JSON.stringify({ action: 'verify', email, code: token }),
       })
 
       const data = await response.json()
@@ -75,9 +79,10 @@ const handleVerify = async (e: React.FormEvent) => {
     setIsLoading(false)
   }
 
-const handleResend = async () => {
+  const handleResend = async () => {
     if (resendCooldown > 0) return
-    
+    if (!email) return
+
     setResending(true)
     setError('')
     setMessage('')
@@ -86,7 +91,7 @@ const handleResend = async () => {
       const response = await fetch('/api/auth/resend-email-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       })
 
       const data = await response.json()
@@ -113,6 +118,7 @@ const handleResend = async () => {
             Enter the 6-digit code sent to your email
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {error && (
             <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-center">
@@ -126,7 +132,7 @@ const handleResend = async () => {
             </div>
           )}
 
-<form onSubmit={handleVerify} className="space-y-4">
+          <form onSubmit={handleVerify} className="space-y-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Email</Label>
               <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
@@ -139,6 +145,7 @@ const handleResend = async () => {
               <Label htmlFor="token" className="text-sm font-medium">
                 Verification Code
               </Label>
+
               <InputOTPGroup>
                 <InputOTP maxLength={6} value={token} onChange={setToken}>
                   <InputOTPGroup>
@@ -156,12 +163,20 @@ const handleResend = async () => {
                   </InputOTPGroup>
                 </InputOTP>
               </InputOTPGroup>
-<p className="text-xs text-muted-foreground text-center">
-                Didn't receive code?{' '}
+
+              <p className="text-xs text-muted-foreground text-center">
+                Didn&apos;t receive code?{' '}
                 {resendCooldown > 0 ? (
                   <span className="text-muted-foreground">Resend in {resendCooldown}s</span>
                 ) : (
-                  <Button variant="link" size="sm" type="button" onClick={handleResend} disabled={resending || isLoading} className="h-5 px-0 p-0 h-auto">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resending || isLoading || !email}
+                    className="h-5 px-0 p-0 h-auto"
+                  >
                     {resending ? 'Sending...' : 'Resend'}
                   </Button>
                 )}
@@ -171,7 +186,7 @@ const handleResend = async () => {
             <Button
               type="submit"
               className="w-full h-12 text-lg"
-              disabled={isLoading || token.length < 6}
+              disabled={isLoading || token.length < 6 || !email}
             >
               {isLoading ? (
                 <>

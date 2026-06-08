@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter , useSearchParams} from "next/navigation";
+
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+
 import {
   Card,
   CardContent,
@@ -12,186 +18,318 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
-import { Loader2, Lock, ArrowLeft } from "lucide-react";
-import { Eye, EyeOff } from "lucide-react";
+
+import {
+  Loader2,
+  Lock,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 function ResetPasswordPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [token, setToken] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [resending, setResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const searchParams =
+    useSearchParams()
 
-  // Countdown timer for resend button
+  const router = useRouter()
+
+  const [email, setEmail] =
+    useState("")
+
+  const [code, setCode] =
+    useState("")
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState("")
+
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false)
+
+  const [isLoading, setIsLoading] =
+    useState(false)
+
+  const [message, setMessage] =
+    useState("")
+
+  const [error, setError] =
+    useState("")
+
+  const [resending, setResending] =
+    useState(false)
+
+  const [
+    resendCooldown,
+    setResendCooldown,
+  ] = useState(0)
+
+  useEffect(() => {
+    const urlEmail =
+      searchParams.get("email") || ""
+
+    if (urlEmail) {
+      setEmail(urlEmail)
+    }
+  }, [searchParams])
+
   useEffect(() => {
     if (resendCooldown <= 0) return
+
     const timer = setInterval(() => {
       setResendCooldown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
           return 0
         }
+
         return prev - 1
       })
     }, 1000)
+
     return () => clearInterval(timer)
   }, [resendCooldown])
 
-  useEffect(() => {
-    const urlToken = searchParams.get("token");
-    const urlEmail = searchParams.get("email");
-    if (urlToken) setToken(urlToken);
-    if (urlEmail) setEmail(urlEmail);
-  }, [searchParams]);
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
+    e.preventDefault()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-    setMessage("");
+    setError("")
+    setMessage("")
 
     try {
-      const response = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword }),
-      });
+      setIsLoading(true)
 
-      const data = await response.json();
+      const response = await fetch(
+        "/api/auth/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            code,
+            newPassword,
+          }),
+        }
+      )
 
-      if (response.ok) {
-        setMessage(data.message);
-        setTimeout(() => router.push("/auth/login"), 2000);
-      } else {
-        setError(data.error || "Reset failed");
+      const data =
+        await response.json()
+
+      if (!response.ok) {
+        setError(
+          data.error ||
+            "Reset failed"
+        )
+
+        return
       }
-    } catch (err) {
-      setError("Network error. Please try again.");
+
+      setMessage(data.message)
+
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 2000)
+    } catch (error) {
+      console.log(error)
+
+      setError(
+        "Network error. Please try again."
+      )
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    setIsLoading(false);
-  };
-
-const handleResend = async () => {
-    if (resendCooldown > 0) return
-    
-    setResending(true);
-    setError('');
+  const handleResend = async () => {
     try {
-      const response = await fetch('/api/auth/resend-reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setMessage('New reset link sent to your email!');
-        setResendCooldown(60); // 60 second cooldown
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        setError(data.error || 'Failed to resend');
+      setResending(true)
+
+      const response = await fetch(
+        "/api/auth/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      )
+
+      const data =
+        await response.json()
+
+      if (!response.ok) {
+        setError(
+          data.error ||
+            "Failed to resend"
+        )
+
+        return
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
+
+      setMessage(
+        "New reset code sent"
+      )
+
+      setResendCooldown(60)
+    } catch (error) {
+      console.log(error)
+
+      setError("Network error")
+    } finally {
+      setResending(false)
     }
-    setResending(false);
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-0 bg-card/80 backdrop-blur-xl p-8">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl">Reset Password</CardTitle>
-          <CardDescription className="text-lg">
-            Enter new password for your account
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/50">
+      <Card className="w-full max-w-md p-8 border-0 bg-card/80 backdrop-blur-xl">
+        <CardHeader className="text-center space-y-3">
+          <CardTitle className="text-3xl">
+            Reset Password
+          </CardTitle>
+
+          <CardDescription className="space-y-2">
+            <p>
+              Enter your reset code
+              and new password
+            </p>
+
+            {email && (
+              <div className="bg-primary/10 text-primary rounded-xl px-4 py-3 text-sm break-all">
+                Reset code sent to:
+                <br />
+                <span className="font-semibold">
+                  {email}
+                </span>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-center">
+            <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-center">
               {error}
             </div>
           )}
+
           {message && (
-            <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-600 text-center">
+            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-600 text-center">
               {message}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-           
-
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
             <div className="space-y-2">
-              <Label htmlFor="token" className="text-sm font-medium">
-                Reset Token
+              <Label htmlFor="code">
+                Reset Code
               </Label>
+
               <Input
-                id="token"
-                placeholder="paste token from email..."
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
+                id="code"
+                inputMode="numeric"
+                pattern="\d{6}"
+                placeholder="Enter 6-digit code"
+                value={code}
+                onChange={(e) =>
+                  setCode(
+                    e.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 6)
+                  )
+                }
+                maxLength={6}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-sm font-medium">
+              <Label htmlFor="password">
                 New Password
               </Label>
+
               <div className="relative">
                 <Input
-                  id="newPassword"
-                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   placeholder="••••••••"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(e) =>
+                    setNewPassword(
+                      e.target.value
+                    )
+                  }
                   className="pr-12"
                   required
                 />
+
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 p-0 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  onClick={() =>
+                    setShowPassword(
+                      !showPassword
+                    )
+                  }
                 >
-                  <Eye className={!showPassword ? "h-5 w-5" : "hidden"} />
-                  <EyeOff className={showPassword ? "h-5 w-5" : "hidden"} />
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </Button>
               </div>
             </div>
 
-<Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="p-0 h-fit text-primary hover:text-primary/80 hover:bg-transparent text-sm -mt-1 mx-auto block underline"
-                onClick={handleResend}
-                disabled={resending || resendCooldown > 0}
-              >
-                {resending ? (
-                  <>
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin inline" />
-                    Resending...
-                  </>
-                ) : resendCooldown > 0 ? (
-                  <>Resend in {resendCooldown}s</>
-                ) : (
-                  'Resend reset link'
-                )}
-              </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-sm underline"
+              disabled={
+                resending ||
+                resendCooldown > 0
+              }
+              onClick={handleResend}
+            >
+              {resending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Resending...
+                </>
+              ) : resendCooldown > 0 ? (
+                `Resend in ${resendCooldown}s`
+              ) : (
+                "Resend reset code"
+              )}
+            </Button>
 
             <Button
               type="submit"
-              className="w-full h-12 text-lg"
+              className="w-full h-12"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -206,12 +344,19 @@ const handleResend = async () => {
                 </>
               )}
             </Button>
+
+            <Link
+              href="/auth/login"
+              className="flex items-center justify-center text-sm text-muted-foreground hover:text-primary"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to login
+            </Link>
           </form>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
-export default ResetPasswordPage;
-
+export default ResetPasswordPage

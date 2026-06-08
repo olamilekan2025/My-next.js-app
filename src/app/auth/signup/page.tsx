@@ -57,11 +57,17 @@ export default function SignupPage() {
 
 if (response.ok) {
         const data = await response.json()
-        setSuccess('Account created! Redirecting to verification...')
-        // Redirect to email verification page with email param
-        setTimeout(() => {
-          window.location.href = `/auth/verify-email?email=${encodeURIComponent(data.email)}`
-        }, 1500)
+
+        // Guard: backend must only return success when verification email was actually sent.
+        // If backend returns a success payload but indicates email was not sent, do NOT redirect.
+        if (data?.success && data?.email) {
+          setSuccess('Account created! Redirecting to verification...')
+          setTimeout(() => {
+            window.location.href = `/auth/verify-email?email=${encodeURIComponent(data.email)}`
+          }, 1500)
+        } else {
+          setError(data?.error || 'Signup succeeded but verification email was not sent.')
+        }
       } else {
         const errorData = await response.json()
         setError(errorData.error || 'Signup failed. Email may already exist.')

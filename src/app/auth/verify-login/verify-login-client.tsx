@@ -43,10 +43,14 @@ export default function VerifyLoginClient() {
     return () => clearInterval(timer)
   }, [resendCooldown])
 
+  const urlEmail = searchParams.get('email')
+
   useEffect(() => {
-    const urlEmail = searchParams.get('email')
-    if (urlEmail) setEmail(urlEmail)
-  }, [searchParams])
+    if (!urlEmail || email) return
+    setEmail((prev) => (prev ? prev : urlEmail))
+  }, [urlEmail, email])
+
+
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()

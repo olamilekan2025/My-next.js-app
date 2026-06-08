@@ -26,6 +26,39 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 })
       }
 
+      const userRole = user.role || 'user'
+
+      // Public users do NOT require login-token verification.
+      // Treat BOTH `user` and missing/undefined role as public.
+      if (userRole === 'user' || !user.role) {
+        await usersCollection.updateOne(
+          { email: email.toLowerCase() },
+          {
+            $set: {
+              isLoginVerified: true,
+              // Clear any leftover verification fields for safety.
+              loginVerificationCode: null,
+              loginCodeExpires: null,
+              updatedAt: new Date(),
+            },
+          }
+        )
+
+        console.log(`✅ Login verified for public user: ${email}`)
+
+        return NextResponse.json({
+          success: true,
+          message: 'Login verified successfully!',
+          role: userRole,
+        })
+      }
+
+      // Admin & sales MUST verify code.
+      if (userRole !== 'admin' && userRole !== 'sales') {
+        // Secure fallback for unknown roles: require verification.
+        return NextResponse.json({ error: 'User role requires verification.' }, { status: 403 })
+      }
+
       // Check if user has login verification code
       if (!user.loginVerificationCode || !user.loginCodeExpires) {
         return NextResponse.json({ error: 'No verification code found. Please login first.' }, { status: 400 })
@@ -44,13 +77,13 @@ export async function POST(request: NextRequest) {
       // Code is valid - update isLoginVerified
       await usersCollection.updateOne(
         { email: email.toLowerCase() },
-        { 
-          $set: { 
+        {
+          $set: {
             isLoginVerified: true,
             loginVerificationCode: null,
             loginCodeExpires: null,
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         }
       )
 

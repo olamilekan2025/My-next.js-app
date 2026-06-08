@@ -1,28 +1,64 @@
 import nodemailer from 'nodemailer';
 
+
+
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
+  service: "gmail",
+
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.EMAIL_SERVER_USER,
+    pass: process.env.EMAIL_SERVER_PASSWORD,
   },
 });
 
-export async function sendEmail(options: nodemailer.SendMailOptions): Promise<boolean> {
-  try {
-    await transporter.sendMail({
-      from: process.env.FROM_EMAIL || '"My Product" <noreply@oladunjoyejeleel@gmail.com>',
-      ...options,
-    });
-    console.log(`✅ Email sent to ${options.to}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to send email:', error);
-    return false;
+
+
+ 
+function assertSmtpConfig() {
+  const required = [
+    "EMAIL_SERVER_USER",
+    "EMAIL_SERVER_PASSWORD",
+    "FROM_EMAIL",
+  ];
+
+  const missing = required.filter(
+    (key) =>
+      !process.env[
+        key as keyof NodeJS.ProcessEnv
+      ]
+  );
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing environment variables: ${missing.join(", ")}`
+    );
   }
 }
+
+
+export async function sendEmail(options: nodemailer.SendMailOptions): Promise<boolean> {
+  try {
+    assertSmtpConfig()
+
+    if (!process.env.FROM_EMAIL) {
+      throw new Error('Missing FROM_EMAIL')
+    }
+
+    await transporter.sendMail({
+      from: process.env.FROM_EMAIL,
+      ...options,
+    })
+
+    console.log(`✅ Email sent to ${options.to}`)
+    return true
+  } catch (error) {
+    // Important: callers rely on the boolean return value to prevent redirecting to verify page.
+    console.error('❌ Failed to send email:', error)
+    return false
+  }
+}
+
+
 
 export async function sendLoginVerificationCode(email: string, code: string): Promise<boolean> {
   const html = `
@@ -92,8 +128,8 @@ export async function sendEmailVerificationCode(email: string, code: string): Pr
   return sendEmail({ to: email, subject: 'Email Verification Code', html });
 }
 
-export async function sendPasswordResetCode(email: string, token: string): Promise<boolean> {
-  const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+export async function sendPasswordResetCode(email: string, code: string): Promise<boolean> {
+  const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/auth/reset-password?email=${encodeURIComponent(email)}`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -103,6 +139,7 @@ export async function sendPasswordResetCode(email: string, token: string): Promi
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont,  Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
     .container { background: #f8f9fa; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .code { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; font-size: 32px; font-weight: bold; letter-spacing: 8px; padding: 20px; border-radius: 12px; margin: 20px 0; display: inline-block; font-family: monospace; }
     .button { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; }
     .footer { margin-top: 30px; font-size: 14px; color: #666; }
   </style>
@@ -110,11 +147,14 @@ export async function sendPasswordResetCode(email: string, token: string): Promi
 <body>
   <div class="container">
     <h1>🔑 Reset Your Password</h1>
-    <p>Click the button below to reset your password. This link expires in 1 hour.</p>
-    <a href="${resetUrl}" class="button">Reset Password</a>
-    <p style="font-size: 14px; margin-top: 20px;">If the button doesn't work, copy this link: ${resetUrl}</p>
+    <p>Use the 6-digit code below to reset your password. This code expires in 1 hour.</p>
+    <div class="code">${code}</div>
+    <p>
+      <a href="${resetUrl}" class="button">Reset Password</a>
+    </p>
+    <p style="font-size: 14px; margin-top: 20px;">If the button doesn&apos;t work, copy this link: ${resetUrl}</p>
     <div class="footer">
-      <p>If you didn't request this, ignore this email.</p>
+      <p>If you didn&apos;t request this, ignore this email.</p>
       <p>© 2024 My Product</p>
     </div>
   </div>
@@ -122,8 +162,10 @@ export async function sendPasswordResetCode(email: string, token: string): Promi
 </html>
   `;
 
+
   return sendEmail({ to: email, subject: 'Password Reset Request', html });
 }
+
 
 export async function sendWelcomeEmail(email: string, firstname: string): Promise<boolean> {
   const html = `

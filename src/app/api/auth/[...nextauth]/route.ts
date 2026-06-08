@@ -2,13 +2,11 @@ import NextAuth, { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import type { User } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
-import { MockUser } from '@/lib/auth-mock'
-import { users, resetTokens } from '../../../../lib/auth-mock'
+import { users } from '@/lib/auth-mock-users'
+import type { Session, User } from 'next-auth'
 
 
-// Extend User type for module augmentation (moved to mock-data.ts)
+// Extend JWT payload with custom fields
 declare module 'next-auth/jwt' {
   interface JWT {
     firstname?: string
@@ -31,15 +29,17 @@ const handler = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const user = users.find((u): u is MockUser => u.email === credentials.email as string)
+        const user = users.find((u) => u.email.toLowerCase() === String(credentials.email).toLowerCase())
+
         if (!user) return null
 
         const isValidPassword = await bcrypt.compare(credentials.password as string, user.password)
         if (!isValidPassword) return null
 
-        // Return only User type properties
+        // Return only fields allowed by NextAuth
         const { password, ...userWithoutPassword } = user
         return userWithoutPassword
+
       }
     })
   ],

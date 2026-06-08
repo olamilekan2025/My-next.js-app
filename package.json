@@ -16,6 +16,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.576.0",
     "mongodb": "^7.2.0",
+    "mongoose": "^9.6.2",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",

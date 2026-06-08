@@ -43,11 +43,20 @@ export async function POST(request: NextRequest) {
     if (userRole === 'user') {
       // Regular users must verify email first before login
       if (!user.isEmailVerified) {
-        return NextResponse.json({ 
-          error: 'Please verify your email before logging in.',
-          needsEmailVerification: true 
-        }, { status: 403 })
+        return NextResponse.json(
+          {
+            error: 'Please verify your email before logging in.',
+            needsEmailVerification: true,
+          },
+          {
+            status: 403,
+            headers: {
+              Location: `/auth/verify-email?email=${encodeURIComponent(email)}`,
+            },
+          }
+        )
       }
+
     }
 
     // For admin and sales, send login verification code

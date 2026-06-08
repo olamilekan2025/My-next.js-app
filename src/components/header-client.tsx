@@ -58,7 +58,8 @@ export function Header() {
             {status === 'authenticated' ? (
               <Button variant="ghost" size="sm" onClick={() => signOut()} className="h-9 px-3">
                 <UserCircle className="h-5 w-5 mr-2" />
-                {session?.user?.firstname} {session?.user?.lastname?.slice(0,1)}.
+                {session?.user?.firstname?.slice(0, 1)}.{" "}
+                {session?.user?.lastname?.slice(0, 1)}.
               </Button>
             ) : (
               <>
